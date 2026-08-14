@@ -1,7 +1,7 @@
 import app from './app.js';
 import { ENV } from './config/env.js';
 import { connectDB } from './config/db.js';
-
+import { Sequelize } from 'sequelize';
 const startServer = async () => {
   console.log('🚀 Iniciando servidor backend HaCAIthon...');
 

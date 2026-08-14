@@ -8,20 +8,26 @@ export default (sequelize) => {
       autoIncrement: true,
       field: 'requirement_id'
     },
+
     majorId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       field: 'major_id'
     },
+
     year: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.INTEGER,
       allowNull: false
     },
-    puntajes: { // se deberia distribuir en las diferentes areas/puntajes
-      type: DataTypes.INTEGER
+
+    puntajes: {
+      type: DataTypes.JSONB,
+      allowNull: false
     },
-    corte: { 
-      type: DataTypes.INTEGER
+
+    corte: {
+      type: DataTypes.INTEGER,
+      allowNull: false
     }
   }, {
     tableName: 'requirements',
