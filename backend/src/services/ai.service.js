@@ -18,7 +18,7 @@ export const generateEducationalSummary = async (simulationResults) => {
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: ENV.GEMINI.MODEL || 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: ENV.GEMINI.MODEL || 'gemini-1.5-flash-latest' });
 
     const prompt = `
 Eres un orientador vocacional y experto en el sistema de admisión universitaria chileno (PAES).

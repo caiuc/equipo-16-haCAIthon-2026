@@ -6,6 +6,7 @@ import catalogRoutes from './catalog.routes.js';
 import applicationRoutes from './application.routes.js';
 import summaryRoutes from './summary.routes.js';
 import guidanceRoutes from './guidance.routes.js';
+import recommendationRoutes from './recommendation.routes.js';
 
 
 const apiRouter = Router();
@@ -82,6 +83,15 @@ apiRouter.use(summaryRoutes);
 // ======================================================
 
 apiRouter.use(guidanceRoutes);
+
+
+// ======================================================
+// Recomendaciones de carreras
+//
+// GET /career-recommendations
+// ======================================================
+
+apiRouter.use(recommendationRoutes);
 
 
 export default apiRouter;
