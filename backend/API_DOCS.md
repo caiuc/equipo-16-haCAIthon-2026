@@ -1,6 +1,6 @@
 # 📚 Guía de Endpoints y Contrato de API (Backend HaCAIthon 2026)
 
-Este documento detalla todas las rutas HTTP disponibles en el backend, sus formatos de petición (`Request`), respuestas esperadas (`Response`) y ejemplos prácticos en JSON para la integración con el frontend en React.
+Este documento detalla todas las rutas HTTP disponibles en el backend, sus formatos de petición (`Request`), respuestas esperadas (`Response`) y ejemplos prácticos en JSON para la integración con el frontend en React y pruebas en Postman.
 
 ---
 
@@ -9,7 +9,7 @@ Este documento detalla todas las rutas HTTP disponibles en el backend, sus forma
 * **Base URL**: `http://localhost:4000` o `http://localhost:4000/api` (ambas rutas están habilitadas).
 * **Formato de datos**: JSON (`Content-Type: application/json`)
 * **CORS**: Habilitado para cualquier origen en desarrollo (`localhost:3000`, `localhost:5173`, etc.).
-* **Autenticación**: No requerida (Endpoints públicos).
+* **Autenticación**: No requerida (Endpoints públicos para visitantes y postulantes).
 
 ---
 
@@ -33,8 +33,8 @@ Verifica que el servidor esté activo y respondiendo.
 ## 🏛️ 2. Catálogos Base (Universidades, Áreas, Carreras y Requisitos)
 
 ### A. Obtener Universidades
-* **Método**: `GET`
-* **Ruta**: `/universities` o `/api/universities`
+* **Métodos**: `GET`
+* **Rutas disponibles**: `/universities`, `/api/universities`, `/universidades`
 * **Respuesta Exitosa (`200 OK`)**:
   ```json
   [
@@ -45,20 +45,22 @@ Verifica que el servidor esté activo y respondiendo.
   ```
 
 ### B. Obtener Tipos de Carrera (Afinidades Vocacionales)
-* **Método**: `GET`
-* **Ruta**: `/career_types` o `/api/career_types`
+* **Métodos**: `GET`
+* **Rutas disponibles**: `/career_types`, `/careertypes`, `/career-types`, `/api/career_types`, `/api/careertypes`
 * **Respuesta Exitosa (`200 OK`)**:
   ```json
   [
     { "career_type_id": 1, "name": "Informática" },
     { "career_type_id": 2, "name": "Ingeniería" },
-    { "career_type_id": 4, "name": "Salud" }
+    { "career_type_id": 3, "name": "Ciencias" },
+    { "career_type_id": 4, "name": "Salud" },
+    { "career_type_id": 5, "name": "Negocios y Economía" }
   ]
   ```
 
 ### C. Obtener Carreras (Majors)
-* **Método**: `GET`
-* **Ruta**: `/majors` o `/api/majors`
+* **Métodos**: `GET`
+* **Rutas disponibles**: `/majors`, `/api/majors`, `/carreras`
 * **Query Params opcionales**: `?carrera=Ingenieria` `?universidad=Catolica`
 * **Respuesta Exitosa (`200 OK`)**:
   ```json
@@ -75,8 +77,8 @@ Verifica que el servidor esté activo y respondiendo.
   ```
 
 ### D. Obtener Requisitos Históricos por Carrera
-* **Método**: `GET`
-* **Ruta**: `/majors/:major_id/requirements` o `/api/majors/:major_id/requirements`
+* **Métodos**: `GET`
+* **Rutas disponibles**: `/majors/:major_id/requirements` o `/api/majors/:major_id/requirements`
 * **Respuesta Exitosa (`200 OK`)**:
   ```json
   [
@@ -107,15 +109,24 @@ Verifica que el servidor esté activo y respondiendo.
 
 ## 🎯 3. Recomendación de Universidades en 3 Niveles (Aspiracional, Mejor Actual y Respaldo)
 
-Filtra automáticamente las universidades para una carrera de interés clasificándolas en:
-1. **Tier 1 (Aspiracional)**: La carrera meta a la que el usuario puede aspirar si sube sus puntajes (con cálculo de puntos faltantes).
-2. **Tier 2 (Mejor opción actual)**: La mejor universidad (la de puntaje de corte más alto) donde actualmente queda seleccionado con sus puntajes.
-3. **Tier 3 (Otras opciones de respaldo)**: Todas las demás universidades a las que puede entrar con puntaje de corte menor que la del Tier 2.
+Filtra y clasifica automáticamente las universidades para una carrera de interés frente a los puntajes del usuario en tres categorías clave:
 
-* **Método**: `POST`
-* **Ruta**: `/simulaciones/recomendaciones` (o `/api/simulaciones/recomendaciones` / `/recomendaciones`)
+1. **`tier1_aspiracional` (Aspiracional si sube puntajes)**: La opción meta a la que actualmente no alcanza el corte, pero que está más cercana hacia arriba (calcula los puntos ponderados que le faltan para entrar).
+2. **`tier2_mejor_alcanzable` (Mejor opción alcanzable hoy)**: La mejor universidad (la de puntaje de corte más alto / más exigente) donde el postulante **sí queda seleccionado** con sus puntajes actuales (`userWeightedScore >= cutoffScore`).
+3. **`tier3_otras_alcanzables` (Opciones de respaldo seguro)**: Todas las demás universidades donde también queda seleccionado, ordenadas de mayor a menor corte (todas con menor corte que la del Tier 2).
 
-### Formato del Body (`Request`)
+* **Métodos**: `POST` (con Body JSON) o `GET` (con Query Params)
+* **Rutas disponibles**: 
+  - `POST /simulaciones/recomendaciones`
+  - `POST /api/simulaciones/recomendaciones`
+  - `POST /recomendaciones`
+  - `GET /api/simulaciones/recomendaciones?carrera=...&nem=...&m1=...`
+
+---
+
+### Modo A: Petición con `POST` (Body JSON)
+
+#### Request Body (`Content-Type: application/json`):
 ```json
 {
   "careerInterest": "Ingeniería Civil",
@@ -131,17 +142,36 @@ Filtra automáticamente las universidades para una carrera de interés clasific�
 }
 ```
 
+---
+
+### Modo B: Petición con `GET` (URL Query Params)
+
+```http
+GET /api/simulaciones/recomendaciones?carrera=Ingeniería%20Civil&nem=750&ranking=770&m1=820&m2=700&c_lectora=700&ciencias=680
+```
+
+---
+
 ### Respuesta Exitosa (`200 OK`)
+
 ```json
 {
   "success": true,
   "data": {
     "careerInterest": "Ingeniería Civil",
-    "userScores": { ... },
+    "userScores": {
+      "nem": 750,
+      "ranking": 770,
+      "lenguaje": 700,
+      "mat1": 820,
+      "mat2": 700,
+      "cienciasHistoria": 680
+    },
     "tier1_aspiracional": {
       "careerId": 1,
       "careerName": "INGENIERÍA CIVIL INFORMÁTICA",
       "university": "Universidad de Concepción",
+      "location": "Concepción",
       "cutoffScore": 757,
       "userWeightedScore": 748.5,
       "pointsNeeded": 8.5,
@@ -152,6 +182,7 @@ Filtra automáticamente las universidades para una carrera de interés clasific�
       "careerId": 5,
       "careerName": "INGENIERÍA CIVIL INFORMÁTICA",
       "university": "Universidad Técnica Federico Santa María",
+      "location": "Valparaíso",
       "cutoffScore": 759,
       "userWeightedScore": 761.5,
       "marginScore": 2.5,
@@ -163,11 +194,23 @@ Filtra automáticamente las universidades para una carrera de interés clasific�
         "careerId": 12,
         "careerName": "INGENIERÍA CIVIL INFORMÁTICA",
         "university": "Pontificia Universidad Católica de Valparaíso",
+        "location": "Valparaíso",
         "cutoffScore": 758,
         "userWeightedScore": 760.0,
         "marginScore": 2.0,
         "status": "RESPALDO_SEGURO",
         "message": "Opción segura de respaldo con corte de 758 pts (tienes +2.0 pts de holgura)."
+      },
+      {
+        "careerId": 24,
+        "careerName": "INGENIERÍA CIVIL EN INFORMÁTICA",
+        "university": "Universidad de Santiago de Chile",
+        "location": "Santiago",
+        "cutoffScore": 730.0,
+        "userWeightedScore": 755.0,
+        "marginScore": 25.0,
+        "status": "RESPALDO_SEGURO",
+        "message": "Opción segura de respaldo con corte de 730 pts (tienes +25.0 pts de holgura)."
       }
     ],
     "summary": {
@@ -238,7 +281,13 @@ Filtra automáticamente las universidades para una carrera de interés clasific�
 
 ---
 
-## 🚀 5. Simulación Completa de Postulación (Los 3 Esquemas + IA)
+## 🚀 5. Simulación Completa de Postulación (Los 3 Esquemas Clave)
+
+Genera el cálculo detallado con los **3 esquemas oficiales**:
+1. **Esquema 1**: Brecha de puntajes y puntos brutos faltantes por sección PAES frente al corte de la carrera meta.
+2. **Esquema 2**: Listado de todas las carreras y universidades donde actualmente queda seleccionado.
+3. **Esquema 3**: Simulación de escenario en caso de que los puntajes de ensayo bajen un 5%.
+4. *(Opcional)*: Resumen vocacional con Inteligencia Artificial (`includeAI: true`).
 
 * **Método**: `POST`
 * **Ruta**: `/simulaciones` o `/api/simulaciones`
@@ -264,6 +313,8 @@ Filtra automáticamente las universidades para una carrera de interés clasific�
 
 ## 🤖 6. Resumen Educativo con IA Independiente
 
+Permite regenerar o consultar únicamente el diagnóstico y consejos vocacionales de Google Gemini pasando los datos de simulación calculados.
+
 * **Método**: `POST`
 * **Ruta**: `/simulaciones/ia-resumen` o `/api/simulaciones/ia-resumen`
 * **Request Body**:
@@ -273,6 +324,15 @@ Filtra automáticamente las universidades para una carrera de interés clasific�
       "userScores": { "nem": 850, "mat1": 900, "lenguaje": 750 },
       "esquema1_brechaPuntajes": { "pointsGap": 20, "meetsCutoff": false },
       "targetCareer": { "name": "Medicina", "university": "Universidad de Chile" }
+    }
+  }
+  ```
+* **Respuesta Exitosa (`200 OK`)**:
+  ```json
+  {
+    "success": true,
+    "data": {
+      "summary": "### 📊 Diagnóstico de Postulación: Medicina...\n\nRecomendaciones para priorizar estudio..."
     }
   }
   ```
