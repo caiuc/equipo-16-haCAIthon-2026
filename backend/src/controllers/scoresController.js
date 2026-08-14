@@ -1,9 +1,5 @@
-import { Score } from '../models/index.js';
+import { Score, Application } from '../models/index.js';
 
-/**
- * POST /scores
- * Crea un registro de puntajes de postulación
- */
 export const createScore = async (req, res, next) => {
   try {
     const {
@@ -11,63 +7,60 @@ export const createScore = async (req, res, next) => {
       NEM,
       ranking,
       M1,
-      M2,
+      M2 = 0,
       c_lectora,
-      ciencias,
-      historia,
-      nem,
-      m1,
-      m2,
-      lenguaje,
+      ciencias = 0,
+      historia = 0
     } = req.body;
 
-    const valNem = NEM !== undefined ? NEM : nem;
-    const valRanking = ranking !== undefined ? ranking : 0;
-    const valM1 = M1 !== undefined ? M1 : m1;
-    const valM2 = M2 !== undefined ? M2 : m2 || 0;
-    const valCLectora = c_lectora !== undefined ? c_lectora : lenguaje;
-    const valCiencias = ciencias !== undefined ? ciencias : 0;
-    const valHistoria = historia !== undefined ? historia : 0;
-
-    if (valNem === undefined || valRanking === undefined || valM1 === undefined || valCLectora === undefined) {
+    if (!application_id) {
       return res.status(400).json({
-        error: 'Debe ingresar al menos los puntajes obligatorios: NEM, ranking, c_lectora y M1.',
+        success: false,
+        error: 'application_id es obligatorio.'
       });
     }
 
-    try {
-      const newScore = await Score.create({
-        application_id: application_id || null,
-        NEM: Number(valNem),
-        ranking: Number(valRanking),
-        M1: Number(valM1),
-        M2: Number(valM2),
-        c_lectora: Number(valCLectora),
-        ciencias: Number(valCiencias),
-        historia: Number(valHistoria),
-        date: new Date(),
+    if (
+      NEM === undefined ||
+      ranking === undefined ||
+      M1 === undefined ||
+      c_lectora === undefined
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: 'Debe ingresar NEM, ranking, M1 y c_lectora.'
       });
-
-      return res.status(201).json(newScore);
-    } catch {
-      // Fallback simulado si no hay BD
-      const mockScore = {
-        score_id: Date.now(),
-        application_id: application_id || null,
-        NEM: Number(valNem),
-        ranking: Number(valRanking),
-        M1: Number(valM1),
-        M2: Number(valM2),
-        c_lectora: Number(valCLectora),
-        ciencias: Number(valCiencias),
-        historia: Number(valHistoria),
-        date: new Date().toISOString(),
-      };
-      return res.status(201).json(mockScore);
     }
+
+    // Verificar que la aplicación existe
+    const application = await Application.findByPk(application_id);
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        error: 'La postulación no existe.'
+      });
+    }
+
+    const score = await Score.create({
+      application_id: Number(application_id),
+      NEM: Number(NEM),
+      ranking: Number(ranking),
+      M1: Number(M1),
+      M2: Number(M2),
+      c_lectora: Number(c_lectora),
+      ciencias: Number(ciencias),
+      historia: Number(historia),
+      date: new Date()
+    });
+
+    return res.status(201).json(score);
+
   } catch (error) {
     next(error);
   }
 };
 
-export default { createScore };
+export default {
+  createScore
+};

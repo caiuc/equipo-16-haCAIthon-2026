@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import simulationRoutes from './simulation.routes.js';
 import careerRoutes from './career.routes.js';
 import catalogRoutes from './catalog.routes.js';
@@ -7,7 +8,11 @@ import { getThreeTiersRecommendations } from '../controllers/simulation.controll
 
 const apiRouter = Router();
 
+
+// ======================================================
 // Health check
+// ======================================================
+
 apiRouter.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
@@ -22,13 +27,53 @@ apiRouter.post('/recomendaciones', getThreeTiersRecommendations);
 // Rutas de Catálogos (/universities, /career_types, /majors, /majors/:major_id/requirements)
 apiRouter.use(catalogRoutes);
 
-// Rutas de Puntajes y Postulaciones (/scores, /applications/:id/admission_analysis)
+
+// ======================================================
+// Postulaciones y puntajes
+//
+// POST /applications
+// POST /scores
+// GET  /applications/:id/admission_analysis
+// ======================================================
+
 apiRouter.use(applicationRoutes);
 
-// Rutas de Búsqueda de Carreras (/carreras)
+
+// ======================================================
+// Búsqueda de carreras
+//
+// GET /carreras
+// ======================================================
+
 apiRouter.use('/carreras', careerRoutes);
 
-// Rutas de Simulación de 3 Esquemas e IA (/simulaciones)
+
+// ======================================================
+// Simulación
+//
+// POST /simulaciones
+// POST /simulaciones/ia-resumen
+// ======================================================
+
 apiRouter.use('/simulaciones', simulationRoutes);
+
+
+// ======================================================
+// Resúmenes
+//
+// POST /summaries
+// ======================================================
+
+apiRouter.use(summaryRoutes);
+
+
+// ======================================================
+// Orientación universitaria con IA
+//
+// POST /career-guidance
+// ======================================================
+
+apiRouter.use(guidanceRoutes);
+
 
 export default apiRouter;
