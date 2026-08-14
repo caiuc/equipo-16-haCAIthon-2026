@@ -4,7 +4,7 @@ import './components/form.css'
 import Diagram from './components/diagram'
 
 const REQUIRED_FIELDS = ['nem', 'ranking', 'matematicas', 'lenguaje']
-const OPTIONAL_FIELDS = ['ciencia', 'historia']
+const OPTIONAL_FIELDS = ['ciencia', 'historia', 'matematicas2']
 
 const FIELD_LABELS = {
   nem: 'NEM',
@@ -13,6 +13,7 @@ const FIELD_LABELS = {
   lenguaje: 'Lenguaje',
   ciencia: 'Ciencia',
   historia: 'Historia',
+  matematicas2: 'Matemáticas 2',
 }
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
     lenguaje: '',
     ciencia: '',
     historia: '',
+    matematicas2: '',
   })
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
@@ -100,7 +102,7 @@ function App() {
   function renderField(name) {
     const isRequired = REQUIRED_FIELDS.includes(name)
     return (
-      <div className="form-group" key={name}>
+      <div className={`form-group ${name === 'matematicas2' ? 'centered-field' : ''}`} key={name}>
         <label className="form-label" htmlFor={name}>
           {FIELD_LABELS[name]}
           {isRequired ? (
@@ -267,32 +269,29 @@ function App() {
 
       <section className="section reveal">
         <div className="container">
-          <h2>Test rápido</h2>
-          <p>
-            En unos minutos sabrás qué áreas te motivan más y qué estudiar.
-          </p>
-        </div>
-      </section>
-
-      <section className="form-section">
-        <div className="form-container">
-          <h2 className="form-title">Ingresa tus puntajes</h2>
-          <p className="form-subtitle">
-            Los campos marcados con * son obligatorios. Valores entre 1 y 1000.
-            Ciencia e Historia son opcionales, pero al menos uno debe completarse.
-          </p>
-          <form onSubmit={handleSubmit} noValidate>
-            {[...REQUIRED_FIELDS, ...OPTIONAL_FIELDS].map(renderField)}
-            {errors.group && <p className="form-error">{errors.group}</p>}
-            <button type="submit" className="form-submit">
-              Enviar
-            </button>
-          </form>
-          {submitted && (
-            <div className="form-success">
-              ¡Datos enviados correctamente!
-            </div>
-          )}
+          <div className="form-container">
+            <h2 className="form-title">Ingresa tus puntajes</h2>
+            <p className="form-subtitle">
+              Los campos marcados con * son obligatorios.
+            </p>
+            <p className="form-note">
+              Ciencia e Historia son opcionales, pero al menos uno debe completarse.
+            </p>
+            <form onSubmit={handleSubmit} noValidate>
+              <div className="form-grid">
+                {[...REQUIRED_FIELDS, ...OPTIONAL_FIELDS].map(renderField)}
+              </div>
+              {errors.group && <p className="form-error">{errors.group}</p>}
+              <button type="submit" className="form-submit">
+                Enviar
+              </button>
+            </form>
+            {submitted && (
+              <div className="form-success">
+                ¡Datos enviados correctamente!
+              </div>
+            )}
+          </div>
         </div>
       </section>
       {/* <Diagram

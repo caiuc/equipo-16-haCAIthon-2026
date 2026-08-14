@@ -10,38 +10,70 @@
 .form-container {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
-  padding: 2.5rem;
-  max-width: 600px;
+  padding: 2rem 1.5rem;
+  max-width: 720px;
   width: 100%;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  margin: 0 auto;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  color: #f8fafc;
 }
 
 .form-title {
-  color: #fff;
-  font-size: 1.8rem;
+  color: #0f172a;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
   margin-bottom: 0.5rem;
   text-align: center;
 }
 
 .form-subtitle {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(15, 23, 42, 0.7);
   text-align: center;
-  margin-bottom: 2rem;
-  font-size: 0.95rem;
+  margin-bottom: 0.6rem;
+  font-size: 1rem;
+}
+
+.form-note {
+  color: rgba(15, 23, 42, 0.7);
+  text-align: center;
+  margin-top: 0.2rem;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  font-weight: 400;
 }
 
 .form-group {
   margin-bottom: 1.5rem;
 }
 
+/* Grid for form fields: single column on small screens, two columns on wide */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem 1.5rem;
+}
+
+@media (min-width: 880px) {
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  /* make the submit button span both columns */
+  .form-submit { grid-column: 1 / -1; }
+}
+
+.form-container { padding: 1.75rem; }
+
 .form-label {
   display: block;
-  color: #fff;
+  color: #0f172a;
   margin-bottom: 0.5rem;
-  font-weight: 500;
-  font-size: 0.95rem;
+  font-weight: 600;
+  font-size: 1rem;
+  font-family: 'Poppins', system-ui, sans-serif;
 }
 
 .form-label .required {
@@ -50,42 +82,42 @@
 }
 
 .form-label .optional {
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 0.8rem;
-  font-weight: 400;
-  margin-left: 6px;
+  color: rgba(15, 23, 42, 0.65);
+  font-size: 0.92rem;
+  font-weight: 500;
+  margin-left: 8px;
 }
 
 .form-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f172a;
   font-size: 1rem;
   transition: border-color 0.3s, box-shadow 0.3s;
   box-sizing: border-box;
 }
 
 .form-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(15, 23, 42, 0.4);
 }
 
 .form-input:focus {
   outline: none;
   border-color: #6c63ff;
-  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.12);
 }
 
 .form-input.error {
   border-color: #ff6b6b;
-  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.12);
 }
 
 .form-error {
   color: #ff6b6b;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   margin-top: 0.4rem;
 }
 
@@ -97,10 +129,10 @@
   border: none;
   border-radius: 8px;
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
 }
 
 .form-submit:hover {
@@ -130,4 +162,19 @@
 .form-input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
+}
+
+/* Center the Matemáticas 2 field and limit its width on wide screens */
+.form-group.centered-field {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.form-group.centered-field .form-input {
+  max-width: 360px;
+  width: 100%;
+}
+.form-group.centered-field .form-label {
+  text-align: center;
 }
