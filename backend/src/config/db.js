@@ -1,32 +1,16 @@
-import { Sequelize } from 'sequelize';
-import { ENV } from './env.js';
+const {Sequelize} = require('sequelize');
+require('dotenv').config();
 
-export const sequelize = new Sequelize(
-  ENV.DB.NAME,
-  ENV.DB.USER,
-  ENV.DB.PASSWORD,
+const sequelize = new Sequelize(
+  process.env.DB_NAME,
+  process.env.DB_USERNAME,
+  process.env.DB_PASSWORD,
   {
-    host: ENV.DB.HOST,
-    port: ENV.DB.PORT,
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
     dialect: 'postgres',
-    logging: ENV.NODE_ENV === 'development' ? false : false, // Cambiar a console.log si se quieren ver queries SQL
-    pool: {
-      max: 5,
-      min: 0,
-      acquire: 30000,
-      idle: 10000,
-    },
+    logging: false, // Desactiva los logs de Sequelize
   }
 );
 
-export const connectDB = async () => {
-  try {
-    await sequelize.authenticate();
-    console.log(`[Database] Conectado exitosamente a PostgreSQL (${ENV.DB.HOST}:${ENV.DB.PORT}/${ENV.DB.NAME})`);
-    return true;
-  } catch (error) {
-    console.warn(`[Database Warning] No se pudo conectar a PostgreSQL (${error.message}).`);
-    console.warn(`[Database Warning] El backend seguirá funcionando para endpoints y simulaciones.`);
-    return false;
-  }
-};
+module.exports = sequelize;
