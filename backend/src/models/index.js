@@ -6,7 +6,7 @@ import defineUniversity from './University.js';
 import defineMajor from './Major.js';
 import defineCareerType from './CareerType.js';
 import defineMajorCareerType from './MajorCareerType.js';
-import defineRequirement from './Requirement.js';
+import defineRequirement from './Requirements.js';
 import defineApplication from './Application.js';
 import defineScore from './Score.js';
 import defineSummary from './Summary.js';
