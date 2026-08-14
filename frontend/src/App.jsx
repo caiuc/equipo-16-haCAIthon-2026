@@ -52,6 +52,7 @@ function App() {
     if (!el) return
     const next = el.nextElementSibling
     if (next) next.scrollIntoView({ behavior: 'smooth' })
+  }
   function validateField(name, value) {
     if (value === '') {
       return REQUIRED_FIELDS.includes(name) ? 'Este campo es obligatorio' : ''
