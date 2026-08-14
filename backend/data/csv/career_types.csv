@@ -1,16 +1,101 @@
 career_type_id,name
-1,Informática
-2,Ingeniería
-3,Ciencias
-4,Salud
-5,Negocios y Economía
-6,Derecho
-7,Ciencias Sociales
-8,Humanidades
-9,Educación y Pedagogía
-10,Arquitectura y Diseño
-11,Artes
-12,Agronomía y Recursos Naturales
-13,Minería y Geociencias
-14,Comunicaciones
-15,Turismo y Hotelería
+1,Ingeniería Civil Industrial
+2,Ingeniería Civil Informática
+3,Ingeniería Civil
+4,Ingeniería Comercial
+5,Ingeniería en Informática
+6,Ingeniería Civil Mecánica
+7,Ingeniería Civil Eléctrica
+8,Ingeniería Civil Electrónica
+9,Ingeniería Civil de Minas
+10,Ingeniería Civil Química
+11,Ingeniería Civil Ambiental
+12,Ingeniería Civil en Obras Civiles
+13,Ingeniería Civil en Computación
+14,Ingeniería Civil Matemática
+15,Ingeniería Civil en Telecomunicaciones
+16,Ingeniería Civil Mecatrónica
+17,Ingeniería Civil Biomédica
+18,Ingeniería en Construcción
+19,Ingeniería
+20,Arquitectura
+21,Derecho
+22,Psicología
+23,Medicina
+24,Enfermería
+25,Odontología
+26,Kinesiología
+27,Nutrición y Dietética
+28,Obstetricia y Puericultura
+29,Fonoaudiología
+30,Terapia Ocupacional
+31,Química y Farmacia
+32,Tecnología Médica
+33,Medicina Veterinaria
+34,Agronomía
+35,Ingeniería Forestal
+36,Ingeniería en Biotecnología
+37,Ingeniería en Alimentos
+38,Ingeniería Ambiental
+39,Geología
+40,Geografía
+41,Biología
+42,Biología Marina
+43,Bioquímica
+44,Química
+45,Física
+46,Matemática
+47,Astronomía
+48,Estadística
+49,Ciencia de Datos
+50,Administración Pública
+51,Contador Auditor
+52,Auditoría
+53,Administración de Empresas
+54,Derecho
+55,Sociología
+56,Antropología
+57,Trabajo Social
+58,Periodismo
+59,Publicidad
+60,Diseño
+61,Diseño Gráfico
+62,Arquitectura
+63,Artes Visuales
+64,Música
+65,Teatro
+66,Filosofía
+67,Historia
+68,Literatura
+69,Traducción e Interpretación
+70,Pedagogía en Educación Básica
+71,Pedagogía en Educación Parvularia
+72,Pedagogía en Educación Diferencial
+73,Pedagogía en Educación Física
+74,Pedagogía en Inglés
+75,Pedagogía en Matemática
+76,Pedagogía en Lenguaje
+77,Pedagogía en Historia
+78,Pedagogía en Ciencias Naturales
+79,Pedagogía en Física
+80,Pedagogía en Química
+81,Pedagogía en Biología
+82,Pedagogía en Filosofía
+83,Pedagogía en Música
+84,Ingeniería en Recursos Naturales
+85,Ingeniería en Información y Control de Gestión
+86,Ingeniería Estadística
+87,Ingeniería Mecánica
+88,Ingeniería Eléctrica
+89,Ingeniería Electrónica
+90,Ingeniería Química
+91,Ingeniería de Alimentos
+92,Ingeniería en Comercio Internacional
+93,Ingeniería en Finanzas
+94,Ingeniería en Logística
+95,Ingeniería en Prevención de Riesgos
+96,Ingeniería en Agronegocios
+97,Construcción Civil
+98,Administración Hotelera y Turismo
+99,Turismo
+100,Cine y Televisión
