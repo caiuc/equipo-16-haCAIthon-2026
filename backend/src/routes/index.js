@@ -6,6 +6,8 @@ import catalogRoutes from './catalog.routes.js';
 import applicationRoutes from './application.routes.js';
 import summaryRoutes from './summary.routes.js';
 import guidanceRoutes from './guidance.routes.js';
+import recommendationRoutes from './recommendation.routes.js';
+
 import { getThreeTiersRecommendations } from '../controllers/simulation.controller.js';
 
 const apiRouter = Router();
@@ -54,5 +56,15 @@ apiRouter.use(summaryRoutes);
 // Orientación universitaria con IA (/career-guidance)
 // ======================================================
 apiRouter.use(guidanceRoutes);
+
+
+// ======================================================
+// Recomendaciones de carreras
+//
+// GET /career-recommendations
+// ======================================================
+
+apiRouter.use(recommendationRoutes);
+
 
 export default apiRouter;
