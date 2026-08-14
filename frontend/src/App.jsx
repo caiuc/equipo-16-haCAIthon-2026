@@ -79,6 +79,10 @@ function App() {
           </p>
         </div>
       </section>
+      <Diagram
+        nodeBackgroundColor="#ffffffff"
+        nodeOpacity={0.6}
+      ></Diagram>
     </div>
   )
 }
