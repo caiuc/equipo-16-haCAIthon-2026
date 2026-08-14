@@ -35,9 +35,15 @@ function App() {
         <div className="container">
           <h1>Bienvenido — Elige tu carrera</h1>
           <p className="lead">Descubre opciones según tus intereses y habilidades.</p>
-          <button className="btn primary" onClick={scrollToInfo}>
-            Empezar
-          </button>
+          <a
+            className="btn-glitch-fill"
+            role="button"
+            onClick={scrollToInfo}
+          >
+            <span className="text">Empezar</span>
+            <span className="text-decoration"> _</span>
+            <span className="decoration">⇒</span>
+          </a>
         </div>
       </section>
 
