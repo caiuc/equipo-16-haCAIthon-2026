@@ -34,7 +34,6 @@ export const calculateGapAnalysis = (scores, career) => {
   const gap = Math.max(0, Math.round((career.cutoffScore - userWeighted) * 10) / 10);
   const meetsCutoff = userWeighted >= career.cutoffScore;
 
-  // Cálculo de puntos brutos adicionales necesarios por cada prueba si solo subiera esa prueba
   const pointsNeededBySection = {};
   const testSections = [
     { key: 'lenguaje', name: 'Comprensión Lectora', weight: career.pctLenguaje, current: scores.lenguaje },
@@ -45,7 +44,6 @@ export const calculateGapAnalysis = (scores, career) => {
 
   for (const test of testSections) {
     if (test.weight > 0 && gap > 0) {
-      // delta_ponderado = delta_bruto * (weight / 100) => delta_bruto = gap / (weight / 100)
       const rawPointsNeeded = Math.ceil(gap / (test.weight / 100));
       const targetScore = Math.min(1000, Number(test.current || 0) + rawPointsNeeded);
       const isPossible = Number(test.current || 0) + rawPointsNeeded <= 1000;
@@ -90,7 +88,7 @@ export const calculateEligibleCareers = (scores, careerList) => {
         cutoffScore: career.cutoffScore,
         userWeightedScore: userWeighted,
         isEligible: userWeighted >= career.cutoffScore,
-        marginScore: margin, // Positivo si sobra puntaje, negativo si falta
+        marginScore: margin,
       };
     })
     .filter((item) => item.isEligible)
@@ -104,7 +102,7 @@ export const calculateEligibleCareers = (scores, careerList) => {
 export const calculateDropScenario = (scores, careerList, dropPercent = 5) => {
   const factor = (100 - dropPercent) / 100;
   const droppedScores = {
-    nem: scores.nem, // NEM y Ranking suelen ser fijos
+    nem: scores.nem,
     ranking: scores.ranking,
     lenguaje: Math.round((scores.lenguaje || 0) * factor),
     mat1: Math.round((scores.mat1 || 0) * factor),
@@ -140,12 +138,95 @@ export const calculateDropScenario = (scores, careerList, dropPercent = 5) => {
 };
 
 /**
+ * RECOMENDACIÓN DE 3 NIVELES / TIER LIST:
+ * 1. Aspiracional: Carrera meta a la que puede aspirar si sube sus puntajes.
+ * 2. Mejor alcanzable: La universidad de corte más alto donde actualmente queda seleccionado.
+ * 3. Opciones de respaldo: Todas las demás universidades alcanzables con menor corte que la 2da.
+ */
+export const calculateThreeTiersRecommendation = async ({ scores, careerInterest, universityInterest }) => {
+  let candidateCareers = [];
+  if (careerInterest) {
+    candidateCareers = await findCareers({ careerName: careerInterest });
+  }
+
+  if (!candidateCareers || candidateCareers.length === 0) {
+    candidateCareers = await getAllCareers();
+  }
+
+  const evaluated = candidateCareers.map((career) => {
+    const userWeighted = calculateWeightedScore(scores, career);
+    const diff = Math.round((userWeighted - career.cutoffScore) * 10) / 10;
+    const isEligible = userWeighted >= career.cutoffScore;
+    const pointsNeeded = isEligible ? 0 : Math.round((career.cutoffScore - userWeighted) * 10) / 10;
+
+    return {
+      careerId: career.id,
+      careerName: career.name,
+      university: career.university,
+      location: career.location,
+      cutoffScore: career.cutoffScore,
+      userWeightedScore: userWeighted,
+      isEligible,
+      pointsNeeded,
+      marginScore: diff,
+    };
+  });
+
+  // 1. Elegibles (donde actualmente puede entrar)
+  const eligible = evaluated
+    .filter((c) => c.isEligible)
+    .sort((a, b) => b.cutoffScore - a.cutoffScore); // De mayor a menor corte
+
+  // 2. Inelegibles (aspiracionales a las que puede entrar si sube)
+  const ineligible = evaluated
+    .filter((c) => !c.isEligible)
+    .sort((a, b) => a.pointsNeeded - b.pointsNeeded); // La más cercana hacia arriba primero
+
+  // TIER 1: Aspiracional si sube puntajes
+  const tier1 = ineligible[0]
+    ? {
+        ...ineligible[0],
+        status: 'ASPIRACIONAL_SI_SUBE_PUNTAJES',
+        message: `Opción meta: Te faltan ${ineligible[0].pointsNeeded} puntos ponderados para alcanzar el corte histórico de ${ineligible[0].cutoffScore}.`,
+      }
+    : null;
+
+  // TIER 2: Mejor universidad alcanzable actualmente (la de corte más alto)
+  const tier2 = eligible[0]
+    ? {
+        ...eligible[0],
+        status: 'MEJOR_OPCION_ALCANZABLE',
+        message: `Tu mejor opción actual: Es la universidad con el puntaje de corte más alto (${eligible[0].cutoffScore} pts) donde quedas seleccionado hoy.`,
+      }
+    : null;
+
+  // TIER 3: Todas las demás universidades alcanzables con menor corte que la 2da
+  const tier3 = eligible.slice(1).map((c) => ({
+    ...c,
+    status: 'RESPALDO_SEGURO',
+    message: `Opción segura de respaldo con corte de ${c.cutoffScore} pts (tienes +${c.marginScore} pts de holgura).`,
+  }));
+
+  return {
+    careerInterest: careerInterest || 'Todas las carreras',
+    userScores: scores,
+    tier1_aspiracional: tier1,
+    tier2_mejor_alcanzable: tier2,
+    tier3_otras_alcanzables: tier3,
+    summary: {
+      totalEvaluadas: evaluated.length,
+      totalAlcanzables: eligible.length,
+      totalAspiracionales: ineligible.length,
+    },
+  };
+};
+
+/**
  * Ejecuta la simulación completa reuniendo los 3 esquemas
  */
 export const executeSimulation = async (inputData) => {
   const { scores, careerInterest, universityInterest } = inputData;
 
-  // Obtener carreras que coinciden con el interés o todas
   const matchingCareers = await findCareers({
     careerName: careerInterest,
     university: universityInterest,
@@ -153,14 +234,9 @@ export const executeSimulation = async (inputData) => {
 
   const allCareers = await getAllCareers();
 
-  // 1. Esquema 1: Brecha con la carrera principal de interés (o primera coincidencia)
   const targetCareer = matchingCareers[0] || allCareers[0];
   const scheme1 = targetCareer ? calculateGapAnalysis(scores, targetCareer) : null;
-
-  // 2. Esquema 2: Carreras elegibles con el puntaje actual
   const scheme2 = calculateEligibleCareers(scores, allCareers);
-
-  // 3. Esquema 3: Simulación en caso de baja de puntaje (ej: 5%)
   const scheme3 = calculateDropScenario(scores, allCareers, 5);
 
   return {

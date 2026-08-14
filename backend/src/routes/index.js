@@ -8,14 +8,13 @@ import summaryRoutes from './summary.routes.js';
 import guidanceRoutes from './guidance.routes.js';
 import recommendationRoutes from './recommendation.routes.js';
 
+import { getThreeTiersRecommendations } from '../controllers/simulation.controller.js';
 
 const apiRouter = Router();
-
 
 // ======================================================
 // Health check
 // ======================================================
-
 apiRouter.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
@@ -24,64 +23,38 @@ apiRouter.get('/health', (req, res) => {
   });
 });
 
+// Endpoint directo de recomendaciones de 3 niveles (/recomendaciones y /api/recomendaciones)
+apiRouter.post('/recomendaciones', getThreeTiersRecommendations);
+apiRouter.get('/recomendaciones', getThreeTiersRecommendations);
 
 // ======================================================
-// Catálogos
-//
-// GET /universities
-// GET /career_types
-// GET /majors
-// GET /majors/:major_id/requirements
+// Catálogos (/universities, /career_types, /careertypes, /majors, /majors/:major_id/requirements)
 // ======================================================
-
 apiRouter.use(catalogRoutes);
 
-
 // ======================================================
-// Postulaciones y puntajes
-//
-// POST /applications
-// POST /scores
-// GET  /applications/:id/admission_analysis
+// Postulaciones y puntajes (/scores, /applications, /applications/:id/admission_analysis)
 // ======================================================
-
 apiRouter.use(applicationRoutes);
 
-
 // ======================================================
-// Búsqueda de carreras
-//
-// GET /carreras
+// Búsqueda de carreras (/carreras)
 // ======================================================
-
 apiRouter.use('/carreras', careerRoutes);
 
-
 // ======================================================
-// Simulación
-//
-// POST /simulaciones
-// POST /simulaciones/ia-resumen
+// Simulación (/simulaciones, /simulaciones/recomendaciones, /simulaciones/ia-resumen)
 // ======================================================
-
 apiRouter.use('/simulaciones', simulationRoutes);
 
-
 // ======================================================
-// Resúmenes
-//
-// POST /summaries
+// Resúmenes (/summaries)
 // ======================================================
-
 apiRouter.use(summaryRoutes);
 
-
 // ======================================================
-// Orientación universitaria con IA
-//
-// POST /career-guidance
+// Orientación universitaria con IA (/career-guidance)
 // ======================================================
-
 apiRouter.use(guidanceRoutes);
 
 
