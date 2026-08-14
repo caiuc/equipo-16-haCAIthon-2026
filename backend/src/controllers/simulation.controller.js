@@ -1,5 +1,55 @@
-import { executeSimulation } from '../services/simulation.service.js';
+import {
+  executeSimulation,
+  calculateThreeTiersRecommendation,
+} from '../services/simulation.service.js';
 import { generateEducationalSummary } from '../services/ai.service.js';
+
+/**
+ * POST /simulaciones/recomendaciones
+ * Endpoint para obtener las 3 categorías de universidades/carreras filtradas:
+ * 1. Aspiracional (meta si sube puntajes)
+ * 2. Mejor opción actual (corte más alto alcanzable)
+ * 3. Opciones de respaldo (todas las demás con menor corte que la 2da)
+ */
+export const getThreeTiersRecommendations = async (req, res, next) => {
+  try {
+    const { scores, careerInterest, carrera, universityInterest, universidad } = req.body;
+
+    const career = careerInterest || carrera;
+    const uni = universityInterest || universidad;
+
+    if (!scores || typeof scores !== 'object') {
+      return res.status(400).json({
+        success: false,
+        message: 'El objeto "scores" con los puntajes (NEM, ranking, M1, etc.) es obligatorio.',
+      });
+    }
+
+    const normalizedScores = {
+      nem: scores.nem !== undefined ? scores.nem : scores.NEM,
+      ranking: scores.ranking,
+      lenguaje: scores.lenguaje !== undefined ? scores.lenguaje : scores.c_lectora,
+      mat1: scores.mat1 !== undefined ? scores.mat1 : scores.M1,
+      mat2: scores.mat2 !== undefined ? scores.mat2 : scores.M2 || 0,
+      cienciasHistoria: scores.cienciasHistoria !== undefined
+        ? scores.cienciasHistoria
+        : Math.max(scores.ciencias || 0, scores.historia || 0),
+    };
+
+    const recommendations = await calculateThreeTiersRecommendation({
+      scores: normalizedScores,
+      careerInterest: career,
+      universityInterest: uni,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: recommendations,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 /**
  * POST /simulaciones y /api/simulaciones
@@ -23,7 +73,6 @@ export const runSimulation = async (req, res, next) => {
       });
     }
 
-    // Normalizar nombres de claves de puntajes si vienen en formato snake_case o mayúsculas
     const normalizedScores = {
       nem: scores.nem !== undefined ? scores.nem : scores.NEM,
       ranking: scores.ranking,
@@ -35,7 +84,6 @@ export const runSimulation = async (req, res, next) => {
         : Math.max(scores.ciencias || 0, scores.historia || 0),
     };
 
-    // Ejecutar lógica de los 3 esquemas
     const simulationResults = await executeSimulation({
       scores: normalizedScores,
       careerInterest,
@@ -87,4 +135,8 @@ export const getAISummary = async (req, res, next) => {
   }
 };
 
-export default { runSimulation, getAISummary };
+export default {
+  getThreeTiersRecommendations,
+  runSimulation,
+  getAISummary,
+};

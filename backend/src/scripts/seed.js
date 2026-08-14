@@ -1,226 +1,59 @@
-import fs from 'fs';
-import path from 'path';
-import { parse } from 'csv-parse/sync';
-import { fileURLToPath } from 'url';
+import { sequelize, University, CareerType, Major, MajorCareerType, Requirement } from '../models/index.js';
+import { loadCSVData } from '../utils/csvLoader.js';
 
-import {
-  sequelize,
-  University,
-  Major,
-  CareerType,
-  MajorCareerType,
-  Requirement
-} from '../models/index.js';
+const seedDatabase = async () => {
+  console.log('🚀 Iniciando sincronización y poblado de la base de datos PostgreSQL...\n');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const DATA_DIR = path.resolve(__dirname, '../../data/csv');
-
-function readCSV(filename) {
-  const filePath = path.join(DATA_DIR, filename);
-
-  const content = fs.readFileSync(filePath, 'utf8');
-
-  return parse(content, {
-    columns: true,
-    skip_empty_lines: true,
-    bom: true,
-    trim: true
-  });
-}
-
-async function seed() {
   try {
-    console.log('🌱 Starting database seed...\n');
-
     await sequelize.authenticate();
+    console.log('✅ Conexión exitosa a PostgreSQL.');
 
-    console.log('✓ Database connection established\n');
+    console.log('⏳ Creando tablas en PostgreSQL (sequelize.sync force)...');
+    await sequelize.sync({ force: true });
+    console.log('✅ Tablas creadas correctamente.\n');
 
-    const universities = readCSV('universities.csv');
-    const careerTypes = readCSV('career_types.csv');
-    const majors = readCSV('majors.csv');
-    const majorCareerTypes = readCSV('major_career_types.csv');
-    const requirements = readCSV('requirements.csv');
+    console.log('📂 Leyendo archivos CSV en backend/data/csv/...');
+    const { universities, careerTypes, majors, majorCareerTypes, requirements } = loadCSVData();
 
-    console.log('CSV loaded:');
-    console.log(`  Universities:        ${universities.length}`);
-    console.log(`  Career Types:        ${careerTypes.length}`);
-    console.log(`  Majors:              ${majors.length}`);
-    console.log(`  Major Career Types:  ${majorCareerTypes.length}`);
-    console.log(`  Requirements:        ${requirements.length}`);
-    console.log();
+    // 1. Insertar Universidades
+    console.log(`⏳ Insertando ${universities.length} universidades...`);
+    await University.bulkCreate(universities);
+    console.log(`✅ Universidades insertadas.`);
 
-    /*
-     * DEVELOPMENT ONLY
-     * Clear academic tables in reverse dependency order.
-     */
+    // 2. Insertar CareerTypes
+    console.log(`⏳ Insertando ${careerTypes.length} tipos de carrera...`);
+    await CareerType.bulkCreate(careerTypes);
+    console.log(`✅ Tipos de carrera insertados.`);
 
-    console.log('🧹 Clearing existing data...');
+    // 3. Insertar Majors
+    console.log(`⏳ Insertando ${majors.length} carreras (majors)...`);
+    await Major.bulkCreate(majors);
+    console.log(`✅ Carreras insertadas.`);
 
-    await Requirement.destroy({
-      where: {},
-      truncate: true,
-      cascade: true
-    });
+    // 4. Insertar MajorCareerTypes
+    console.log(`⏳ Insertando ${majorCareerTypes.length} relaciones carrera-área...`);
+    await MajorCareerType.bulkCreate(majorCareerTypes);
+    console.log(`✅ Relaciones carrera-área insertadas.`);
 
-    await MajorCareerType.destroy({
-      where: {},
-      truncate: true,
-      cascade: true
-    });
+    // 5. Insertar Requirements
+    console.log(`⏳ Insertando ${requirements.length} requisitos y cortes históricos...`);
+    await Requirement.bulkCreate(requirements);
+    console.log(`✅ Requisitos insertados.`);
 
-    await Major.destroy({
-      where: {},
-      truncate: true,
-      cascade: true
-    });
+    console.log('\n🎉 ¡BASE DE DATOS POBLADA EXITOSAMENTE CON EL DATASET OFICIAL!');
+    console.log(`📊 Resumen:`);
+    console.log(`   - Universidades: ${universities.length}`);
+    console.log(`   - Áreas de afinidad: ${careerTypes.length}`);
+    console.log(`   - Carreras: ${majors.length}`);
+    console.log(`   - Relaciones N:M: ${majorCareerTypes.length}`);
+    console.log(`   - Requisitos y cortes: ${requirements.length}`);
 
-    await CareerType.destroy({
-      where: {},
-      truncate: true,
-      cascade: true
-    });
-
-    await University.destroy({
-      where: {},
-      truncate: true,
-      cascade: true
-    });
-
-    console.log('✓ Existing academic data cleared\n');
-
-    /*
-     * UNIVERSITIES
-     */
-
-    console.log('🏫 Inserting universities...');
-
-    await University.bulkCreate(
-      universities.map(row => ({
-        uni_id: Number(row.uni_id),
-        name: row.name
-      })),
-      {
-        validate: true
-      }
-    );
-
-    console.log(`✓ ${universities.length} universities inserted`);
-
-    /*
-     * CAREER TYPES
-     */
-
-    console.log('📚 Inserting career types...');
-
-    await CareerType.bulkCreate(
-      careerTypes.map(row => ({
-        career_type_id: Number(row.career_type_id),
-        name: row.name
-      })),
-      {
-        validate: true
-      }
-    );
-
-    console.log(`✓ ${careerTypes.length} career types inserted`);
-
-    /*
-     * MAJORS
-     */
-
-    console.log('🎓 Inserting majors...');
-
-    await Major.bulkCreate(
-      majors.map(row => ({
-        major_id: Number(row.major_id),
-        uni_id: Number(row.uni_id),
-        name: row.name
-      })),
-      {
-        validate: true
-      }
-    );
-
-    console.log(`✓ ${majors.length} majors inserted`);
-
-    /*
-     * MAJOR <-> CAREER TYPE
-     */
-
-    console.log('🔗 Inserting major-career relationships...');
-
-    await MajorCareerType.bulkCreate(
-      majorCareerTypes.map(row => ({
-        major_id: Number(row.major_id),
-        career_type_id: Number(row.career_type_id)
-      })),
-      {
-        validate: true
-      }
-    );
-
-    console.log(
-      `✓ ${majorCareerTypes.length} major-career relationships inserted`
-    );
-
-    /*
-     * REQUIREMENTS
-     */
-
-    console.log('📊 Inserting requirements...');
-
-    await Requirement.bulkCreate(
-      requirements.map(row => ({
-        requirement_id: Number(row.requirement_id),
-        major_id: Number(row.major_id),
-        year: Number(row.year),
-
-        puntajes:
-          typeof row.puntajes === 'string'
-            ? JSON.parse(row.puntajes)
-            : row.puntajes,
-
-        corte: Number(row.corte)
-      })),
-      {
-        validate: true
-      }
-    );
-
-    console.log(`✓ ${requirements.length} requirements inserted\n`);
-
-    /*
-     * VALIDATION
-     */
-
-    console.log('🔍 Validating database...\n');
-
-    const universityCount = await University.count();
-    const careerTypeCount = await CareerType.count();
-    const majorCount = await Major.count();
-    const majorCareerTypeCount = await MajorCareerType.count();
-    const requirementCount = await Requirement.count();
-
-    console.log(`Universities:       ${universityCount}`);
-    console.log(`Career Types:       ${careerTypeCount}`);
-    console.log(`Majors:             ${majorCount}`);
-    console.log(`Major Career Types: ${majorCareerTypeCount}`);
-    console.log(`Requirements:       ${requirementCount}`);
-
-    console.log('\n✅ Database successfully seeded!');
-
+    process.exit(0);
   } catch (error) {
-    console.error('\n❌ Seed failed:');
+    console.error('\n❌ Error al poblar la base de datos:', error.message);
     console.error(error);
-
-    process.exitCode = 1;
-
-  } finally {
-    await sequelize.close();
+    process.exit(1);
   }
-}
+};
 
-seed();
+seedDatabase();
