@@ -1,13 +1,6 @@
 import { sequelize } from '../config/db.js';
-import { Career } from './career.model.js';
 
-// Aquí se pueden asociar más modelos a futuro si normalizan la BD:
-// ej: University.hasMany(Career), etc.
-
-export { sequelize, Career };
-import { Sequelize } from 'sequelize';
-
-// Importar factorías de modelos
+// Importar factorías de definición de modelos
 import defineUser from './User.js';
 import defineUniversity from './University.js';
 import defineMajor from './Major.js';
@@ -17,21 +10,9 @@ import defineRequirement from './Requirement.js';
 import defineApplication from './Application.js';
 import defineScore from './Score.js';
 import defineSummary from './Summary.js';
+import { Career } from './career.model.js';
 
-// Instancia de conexión a PostgreSQL
-export const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASS,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT || 5432,
-    dialect: 'postgres',
-    logging: false
-  }
-);
-
-// Inicializar modelos
+// Instanciar modelos con la conexión centralizada
 export const User = defineUser(sequelize);
 export const University = defineUniversity(sequelize);
 export const Major = defineMajor(sequelize);
@@ -41,40 +22,58 @@ export const Requirement = defineRequirement(sequelize);
 export const Application = defineApplication(sequelize);
 export const Score = defineScore(sequelize);
 export const Summary = defineSummary(sequelize);
+export { Career, sequelize };
 
 // ==========================================
 // DEFINICIÓN DE ASOCIACIONES (RELACIONES)
 // ==========================================
 
 // 1. University <-> Major (1:N)
-University.hasMany(Major, { foreignKey: 'uniId', as: 'majors' });
-Major.belongsTo(University, { foreignKey: 'uniId', as: 'university' });
+University.hasMany(Major, { foreignKey: 'uni_id', as: 'majors' });
+Major.belongsTo(University, { foreignKey: 'uni_id', as: 'university' });
 
 // 2. Major <-> CareerType (N:M a través de MajorCareerType)
-Major.belongsToMany(CareerType, { through: MajorCareerType, foreignKey: 'majorId', as: 'careerTypes' });
-CareerType.belongsToMany(Major, { through: MajorCareerType, foreignKey: 'careerTypeId', as: 'majors' });
+Major.belongsToMany(CareerType, {
+  through: MajorCareerType,
+  foreignKey: 'major_id',
+  otherKey: 'career_type_id',
+  as: 'careerTypes',
+});
+CareerType.belongsToMany(Major, {
+  through: MajorCareerType,
+  foreignKey: 'career_type_id',
+  otherKey: 'major_id',
+  as: 'majors',
+});
 
-// 3. Major <-> Requirement (1:N)
-Major.hasMany(Requirement, { foreignKey: 'majorId', as: 'requirements' });
-Requirement.belongsTo(Major, { foreignKey: 'majorId', as: 'major' });
+// 3. Relación directa con MajorCareerType
+Major.hasMany(MajorCareerType, { foreignKey: 'major_id', as: 'majorCareerTypes' });
+MajorCareerType.belongsTo(Major, { foreignKey: 'major_id', as: 'major' });
+CareerType.hasMany(MajorCareerType, { foreignKey: 'career_type_id', as: 'majorCareerTypes' });
+MajorCareerType.belongsTo(CareerType, { foreignKey: 'career_type_id', as: 'careerType' });
 
-// 4. Application Foreign Keys (User, University, Major)
-User.hasMany(Application, { foreignKey: 'userId', as: 'applications' });
-Application.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+// 4. Major <-> Requirement (1:N)
+Major.hasMany(Requirement, { foreignKey: 'major_id', as: 'requirements' });
+Requirement.belongsTo(Major, { foreignKey: 'major_id', as: 'major' });
 
-University.hasMany(Application, { foreignKey: 'universityId', as: 'applications' });
-Application.belongsTo(University, { foreignKey: 'universityId', as: 'university' });
+// 5. Application Foreign Keys (User, University, Major)
+User.hasMany(Application, { foreignKey: 'user_id', as: 'applications' });
+Application.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
-Major.hasMany(Application, { foreignKey: 'majorId', as: 'applications' });
-Application.belongsTo(Major, { foreignKey: 'majorId', as: 'major' });
+University.hasMany(Application, { foreignKey: 'university_id', as: 'applications' });
+Application.belongsTo(University, { foreignKey: 'university_id', as: 'university' });
 
-// 5. Application <-> Score (1:N o 1:1)
-Application.hasMany(Score, { foreignKey: 'applicationId', as: 'scores' });
-Score.belongsTo(Application, { foreignKey: 'applicationId', as: 'application' });
+Major.hasMany(Application, { foreignKey: 'major_id', as: 'applications' });
+Application.belongsTo(Major, { foreignKey: 'major_id', as: 'major' });
 
-// 6. Score <-> Summary (1:1 vía scoreId)
-Score.hasOne(Summary, { foreignKey: 'scoreId', as: 'summary' });
-Summary.belongsTo(Score, { foreignKey: 'scoreId', as: 'score' });
+// 6. Application <-> Score (1:1 / 1:N)
+Application.hasOne(Score, { foreignKey: 'application_id', as: 'score' });
+Application.hasMany(Score, { foreignKey: 'application_id', as: 'scores' });
+Score.belongsTo(Application, { foreignKey: 'application_id', as: 'application' });
+
+// 7. Score <-> Summary (1:1)
+Score.hasOne(Summary, { foreignKey: 'score_id', as: 'summary' });
+Summary.belongsTo(Score, { foreignKey: 'score_id', as: 'score' });
 
 export default {
   sequelize,
@@ -86,5 +85,6 @@ export default {
   Requirement,
   Application,
   Score,
-  Summary
+  Summary,
+  Career,
 };

@@ -12,8 +12,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev')); // Logger de peticiones HTTP en consola
 
-// Montaje de rutas de la API
+// Montaje de rutas en /api y en la raíz para compatibilidad total con cualquier configuración del frontend
 app.use('/api', apiRouter);
+app.use('/', apiRouter);
 
 // Manejo de 404 para rutas inexistentes
 app.use(notFoundHandler);

@@ -6,7 +6,7 @@ Este documento detalla todas las rutas HTTP disponibles en el backend, sus forma
 
 ## 🌐 Información General
 
-* **Base URL**: `http://localhost:4000/api`
+* **Base URL**: `http://localhost:4000` o `http://localhost:4000/api` (ambas rutas están habilitadas).
 * **Formato de datos**: JSON (`Content-Type: application/json`)
 * **CORS**: Habilitado para cualquier origen en desarrollo (`localhost:3000`, `localhost:5173`, etc.).
 * **Autenticación**: No requerida (Endpoints públicos).
@@ -18,69 +18,160 @@ Este documento detalla todas las rutas HTTP disponibles en el backend, sus forma
 Verifica que el servidor esté activo y respondiendo.
 
 * **Método**: `GET`
-* **Ruta**: `/health`
+* **Ruta**: `/health` o `/api/health`
 * **Respuesta Exitosa (`200 OK`)**:
   ```json
   {
     "success": true,
     "message": "Backend HaCAIthon API funcionando correctamente",
-    "timestamp": "2026-08-14T17:45:00.000Z"
+    "timestamp": "2026-08-14T18:51:38.050Z"
   }
   ```
 
 ---
 
-## 🎓 2. Listado y Búsqueda de Carreras
+## 🏛️ 2. Catálogos Base (Universidades, Áreas, Carreras y Requisitos)
 
-Obtiene la lista de carreras, universidades y sus respectivos puntajes de corte con ponderaciones.
-
+### A. Obtener Universidades
 * **Método**: `GET`
-* **Ruta**: `/carreras`
-* **Query Parameters (Opcionales)**:
-  * `carrera`: Filtra por coincidencia en el nombre de la carrera (ej: `?carrera=Ingeniería Civil`).
-  * `universidad`: Filtra por nombre de la universidad (ej: `?universidad=Católica`).
+* **Ruta**: `/universities` o `/api/universities`
+* **Respuesta Exitosa (`200 OK`)**:
+  ```json
+  [
+    { "uni_id": 1, "name": "Universidad de Chile" },
+    { "uni_id": 2, "name": "Pontificia Universidad Católica de Chile" },
+    { "uni_id": 3, "name": "Universidad de Concepción" }
+  ]
+  ```
 
-### Ejemplo de Petición
-```http
-GET /api/carreras?carrera=Ingeniería
-```
+### B. Obtener Tipos de Carrera (Afinidades Vocacionales)
+* **Método**: `GET`
+* **Ruta**: `/career_types` o `/api/career_types`
+* **Respuesta Exitosa (`200 OK`)**:
+  ```json
+  [
+    { "career_type_id": 1, "name": "Informática" },
+    { "career_type_id": 2, "name": "Ingeniería" },
+    { "career_type_id": 4, "name": "Salud" }
+  ]
+  ```
 
-### Respuesta Exitosa (`200 OK`)
-```json
-{
-  "success": true,
-  "count": 3,
-  "data": [
+### C. Obtener Carreras (Majors)
+* **Método**: `GET`
+* **Ruta**: `/majors` o `/api/majors`
+* **Query Params opcionales**: `?carrera=Ingenieria` `?universidad=Catolica`
+* **Respuesta Exitosa (`200 OK`)**:
+  ```json
+  [
     {
-      "id": 1,
-      "code": "11045",
-      "name": "Ingeniería Civil",
-      "university": "Pontificia Universidad Católica de Chile",
-      "location": "Santiago",
-      "cutoffScore": 895.5,
-      "pctNem": 20,
-      "pctRanking": 25,
-      "pctLenguaje": 10,
-      "pctMat1": 30,
-      "pctMat2": 10,
-      "pctCienciasHistoria": 5
+      "major_id": 1,
+      "name": "ACTUACIÓN TEATRAL",
+      "university": {
+        "uni_id": 1,
+        "name": "Universidad de Chile"
+      }
     }
   ]
-}
-```
+  ```
+
+### D. Obtener Requisitos Históricos por Carrera
+* **Método**: `GET`
+* **Ruta**: `/majors/:major_id/requirements` o `/api/majors/:major_id/requirements`
+* **Respuesta Exitosa (`200 OK`)**:
+  ```json
+  [
+    {
+      "requirement_id": 4,
+      "major_id": 1,
+      "year": 2026,
+      "corte": 596,
+      "puntajes": {
+        "NEM": 10,
+        "ranking": 10,
+        "c_lectora": 10,
+        "M1": 10,
+        "historia": 10,
+        "ciencias": 0,
+        "M2": 0,
+        "electiva_alternativa": false,
+        "prueba_especial": 50,
+        "min_ponderado_postulacion": 0,
+        "min_promedio_CL_M1": 458,
+        "fuente_ponderacion": "Oferta Definitiva de Carreras 2026 (DEMRE/MINEDUC)"
+      }
+    }
+  ]
+  ```
 
 ---
 
-## 🚀 3. Simulación de Postulación (Los 3 Esquemas)
+## 📝 3. Registro de Puntajes y Análisis Individual
+
+### A. Crear / Guardar Puntajes
+* **Método**: `POST`
+* **Ruta**: `/scores` o `/api/scores`
+* **Request Body**:
+  ```json
+  {
+    "NEM": 850,
+    "ranking": 870,
+    "M1": 890,
+    "M2": 760,
+    "c_lectora": 780,
+    "ciencias": 740,
+    "historia": 700
+  }
+  ```
+* **Respuesta Exitosa (`201 Created`)**:
+  ```json
+  {
+    "score_id": 1,
+    "application_id": null,
+    "NEM": 850,
+    "ranking": 870,
+    "M1": 890,
+    "M2": 760,
+    "c_lectora": 780,
+    "ciencias": 740,
+    "historia": 700,
+    "date": "2026-08-14T18:51:38.147Z"
+  }
+  ```
+
+### B. Análisis de Admisión de Postulación
+* **Método**: `GET`
+* **Ruta**: `/applications/:id/admission_analysis` o `/api/applications/:id/admission_analysis`
+* **Respuesta Exitosa (`200 OK`)**:
+  ```json
+  {
+    "student_score": 845.5,
+    "target_major": {
+      "name": "Ingeniería Civil",
+      "university": "Pontificia Universidad Católica de Chile",
+      "historical_cutoff": 895.5
+    },
+    "admission_status": "EN RIESGO / LISTA DE ESPERA",
+    "points_difference": -50.0,
+    "challenge_suggestion": {
+      "major_name": "Ingeniería Civil",
+      "university_name": "Universidad de Chile",
+      "corte": 882.3
+    }
+  }
+  ```
+
+---
+
+## 🚀 4. Simulación Completa de Postulación (Los 3 Esquemas + IA)
 
 Calcula automáticamente la ponderación y genera los **3 esquemas clave** para el usuario:
 1. **Esquema 1**: Brecha de puntajes y puntos faltantes por sección frente al corte.
-2. **Esquema 2**: Carreras y universidades donde actualmente queda seleccionado.
+2. **Esquema 2**: Carreras y universidades donde actualmente queda seleccionado (sobre más de 1200 opciones).
 3. **Esquema 3**: Simulación de escenario si sus puntajes de ensayo bajan.
 4. *(Opcional)*: Resumen y orientación con Inteligencia Artificial (`includeAI: true`).
 
 * **Método**: `POST`
-* **Ruta**: `/simulaciones`
+* **Ruta**: `/simulaciones` o `/api/simulaciones`
 
 ### Formato del Body (`Request`)
 ```json
@@ -187,50 +278,26 @@ Calcula automáticamente la ponderación y genera los **3 esquemas clave** para 
 
 ---
 
-## 🤖 4. Resumen Educativo Independiente con IA
-
-Permite solicitar o regenerar únicamente el consejo con IA pasando los datos calculados.
+## 🤖 5. Resumen Educativo con IA Independiente
 
 * **Método**: `POST`
-* **Ruta**: `/simulaciones/ia-resumen`
-
-### Body (`Request`)
-```json
-{
-  "simulationData": {
-    "userScores": { "nem": 850, "mat1": 900, "lenguaje": 750 },
-    "esquema1_brechaPuntajes": { "pointsGap": 20, "meetsCutoff": false },
-    "targetCareer": { "name": "Medicina", "university": "Universidad de Chile" }
+* **Ruta**: `/simulaciones/ia-resumen` o `/api/simulaciones/ia-resumen`
+* **Request Body**:
+  ```json
+  {
+    "simulationData": {
+      "userScores": { "nem": 850, "mat1": 900, "lenguaje": 750 },
+      "esquema1_brechaPuntajes": { "pointsGap": 20, "meetsCutoff": false },
+      "targetCareer": { "name": "Medicina", "university": "Universidad de Chile" }
+    }
   }
-}
-```
-
-### Respuesta Exitosa (`200 OK`)
-```json
-{
-  "success": true,
-  "data": {
-    "summary": "### 📊 Diagnóstico de Postulación: Medicina...\n\nRecomendaciones para priorizar estudio..."
+  ```
+* **Respuesta Exitosa (`200 OK`)**:
+  ```json
+  {
+    "success": true,
+    "data": {
+      "summary": "### 📊 Diagnóstico de Postulación: Medicina...\n\nRecomendaciones para priorizar estudio..."
+    }
   }
-}
-```
-
----
-
-## ⚠️ Estructura Estándar de Respuestas de Error
-
-Todos los errores devuelven un formato uniforme y predecible:
-
-```json
-{
-  "success": false,
-  "message": "Descripción clara del error o dato faltante",
-  "details": null
-}
-```
-
-### Códigos HTTP habituales:
-* `200 OK`: Operación exitosa.
-* `400 Bad Request`: Faltan datos requeridos (ej. no se envió `careerInterest` o `scores`).
-* `404 Not Found`: Ruta no encontrada.
-* `500 Internal Server Error`: Excepción no controlada (el middleware evita que el servidor se caiga y devuelve este código).
+  ```
