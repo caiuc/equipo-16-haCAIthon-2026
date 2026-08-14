@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import './components/form.css'
 import Diagram from './components/diagram'
+import { getCareerGuidance, getSimulacion } from '../api/api_request'
 
 const REQUIRED_FIELDS = ['nem', 'ranking', 'matematicas', 'lenguaje']
 const OPTIONAL_FIELDS = ['ciencia', 'historia', 'matematicas2']
@@ -28,6 +29,8 @@ function App() {
   })
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [apiError, setApiError] = useState('')
 
 
   useEffect(() => {
@@ -96,6 +99,48 @@ function App() {
     setErrors(newErrors)
     if (Object.keys(newErrors).length === 0) {
       setSubmitted(true)
+      setApiError('')
+      setLoading(true)
+      const num = (v) => Number(v)
+
+      const careerGuidanceBody = {
+        NEM: num(values.nem),
+        ranking: num(values.ranking),
+        M1: num(values.matematicas),
+        M2: num(values.matematicas2),
+        c_lectora: num(values.lenguaje),
+        ciencias: num(values.ciencia),
+        historia: num(values.historia),
+      }
+
+      const simulacionBody = {
+        includeAI: true,
+        scores: {
+          nem: num(values.nem),
+          ranking: num(values.ranking),
+          lenguaje: num(values.lenguaje),
+          mat1: num(values.matematicas),
+          mat2: num(values.matematicas2),
+          cienciasHistoria: num(values.ciencia || values.historia),
+        },
+      }
+
+      Promise.allSettled([
+        getCareerGuidance(careerGuidanceBody),
+        getSimulacion(simulacionBody),
+      ])
+        .then((results) => {
+          const failed = results.filter((r) => r.status === 'rejected')
+          if (failed.length > 0) {
+            setApiError('Hubo un error al procesar la solicitud. Inténtalo nuevamente.')
+          }
+        })
+        .catch(() => {
+          setApiError('Hubo un error al procesar la solicitud. Inténtalo nuevamente.')
+        })
+        .finally(() => {
+          setLoading(false)
+        })
     }
   }
 
@@ -286,10 +331,18 @@ function App() {
                 Enviar
               </button>
             </form>
-            {submitted && (
+            {submitted && !loading && !apiError && (
               <div className="form-success">
                 ¡Datos enviados correctamente!
               </div>
+            )}
+            {loading && (
+              <div className="form-success">
+                Procesando solicitud...
+              </div>
+            )}
+            {apiError && (
+              <div className="form-error">{apiError}</div>
             )}
           </div>
         </div>
