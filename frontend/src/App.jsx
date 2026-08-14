@@ -26,6 +26,7 @@ function App() {
     ciencia: '',
     historia: '',
     matematicas2: '',
+    careerInterest: '',
   })
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
@@ -82,6 +83,9 @@ function App() {
     if (value === '') {
       return REQUIRED_FIELDS.includes(name) ? 'Este campo es obligatorio' : ''
     }
+    // only apply numeric validation to the numeric fields
+    const numericFields = [...REQUIRED_FIELDS, ...OPTIONAL_FIELDS]
+    if (!numericFields.includes(name)) return ''
     const num = Number(value)
     if (!Number.isInteger(num)) {
       return 'Debe ser un número entero'
@@ -199,18 +203,20 @@ function App() {
     return (
       <div className="form-group select-full" key="careerInterest">
         <label className="form-label" htmlFor="careerInterest">Carrera de interés</label>
-        <select
+        <input
           id="careerInterest"
           name="careerInterest"
+          list="majors_list"
           className={`form-select`}
           value={values.careerInterest || ''}
           onChange={handleChange}
-        >
-          <option value="">— Selecciona una carrera —</option>
+          placeholder="Escribe o selecciona una carrera"
+        />
+        <datalist id="majors_list">
           {majors.map((m) => (
-            <option key={m.major_id || m.id} value={m.name}>{m.name} — {m.university?.name || (m.university && m.university.name) || ''}</option>
+            <option key={m.major_id || m.id} value={`${m.name} — ${m.university?.name || (m.university && m.university.name) || ''}`} />
           ))}
-        </select>
+        </datalist>
         {errors.careerInterest && <p className="form-error">{errors.careerInterest}</p>}
       </div>
     )
