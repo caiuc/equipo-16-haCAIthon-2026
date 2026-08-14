@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import './App.css'
+import Diagram from './components/diagram'
 
 function App() {
   useEffect(() => {
