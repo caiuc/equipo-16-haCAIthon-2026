@@ -5,6 +5,8 @@ import careerRoutes from './career.routes.js';
 import catalogRoutes from './catalog.routes.js';
 import applicationRoutes from './application.routes.js';
 import summaryRoutes from './summary.routes.js';
+import guidanceRoutes from './guidance.routes.js';
+
 
 const apiRouter = Router();
 
@@ -71,6 +73,15 @@ apiRouter.use('/simulaciones', simulationRoutes);
 // ======================================================
 
 apiRouter.use(summaryRoutes);
+
+
+// ======================================================
+// Orientación universitaria con IA
+//
+// POST /career-guidance
+// ======================================================
+
+apiRouter.use(guidanceRoutes);
 
 
 export default apiRouter;
