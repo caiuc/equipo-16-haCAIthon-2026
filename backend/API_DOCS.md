@@ -105,7 +105,83 @@ Verifica que el servidor esté activo y respondiendo.
 
 ---
 
-## 📝 3. Registro de Puntajes y Análisis Individual
+## 🎯 3. Recomendación de Universidades en 3 Niveles (Aspiracional, Mejor Actual y Respaldo)
+
+Filtra automáticamente las universidades para una carrera de interés clasificándolas en:
+1. **Tier 1 (Aspiracional)**: La carrera meta a la que el usuario puede aspirar si sube sus puntajes (con cálculo de puntos faltantes).
+2. **Tier 2 (Mejor opción actual)**: La mejor universidad (la de puntaje de corte más alto) donde actualmente queda seleccionado con sus puntajes.
+3. **Tier 3 (Otras opciones de respaldo)**: Todas las demás universidades a las que puede entrar con puntaje de corte menor que la del Tier 2.
+
+* **Método**: `POST`
+* **Ruta**: `/simulaciones/recomendaciones` (o `/api/simulaciones/recomendaciones` / `/recomendaciones`)
+
+### Formato del Body (`Request`)
+```json
+{
+  "careerInterest": "Ingeniería Civil",
+  "scores": {
+    "nem": 750,
+    "ranking": 770,
+    "c_lectora": 700,
+    "M1": 820,
+    "M2": 700,
+    "ciencias": 680,
+    "historia": 650
+  }
+}
+```
+
+### Respuesta Exitosa (`200 OK`)
+```json
+{
+  "success": true,
+  "data": {
+    "careerInterest": "Ingeniería Civil",
+    "userScores": { ... },
+    "tier1_aspiracional": {
+      "careerId": 1,
+      "careerName": "INGENIERÍA CIVIL INFORMÁTICA",
+      "university": "Universidad de Concepción",
+      "cutoffScore": 757,
+      "userWeightedScore": 748.5,
+      "pointsNeeded": 8.5,
+      "status": "ASPIRACIONAL_SI_SUBE_PUNTAJES",
+      "message": "Opción meta: Te faltan 8.5 puntos ponderados para alcanzar el corte histórico de 757."
+    },
+    "tier2_mejor_alcanzable": {
+      "careerId": 5,
+      "careerName": "INGENIERÍA CIVIL INFORMÁTICA",
+      "university": "Universidad Técnica Federico Santa María",
+      "cutoffScore": 759,
+      "userWeightedScore": 761.5,
+      "marginScore": 2.5,
+      "status": "MEJOR_OPCION_ALCANZABLE",
+      "message": "Tu mejor opción actual: Es la universidad con el puntaje de corte más alto (759 pts) donde quedas seleccionado hoy."
+    },
+    "tier3_otras_alcanzables": [
+      {
+        "careerId": 12,
+        "careerName": "INGENIERÍA CIVIL INFORMÁTICA",
+        "university": "Pontificia Universidad Católica de Valparaíso",
+        "cutoffScore": 758,
+        "userWeightedScore": 760.0,
+        "marginScore": 2.0,
+        "status": "RESPALDO_SEGURO",
+        "message": "Opción segura de respaldo con corte de 758 pts (tienes +2.0 pts de holgura)."
+      }
+    ],
+    "summary": {
+      "totalEvaluadas": 190,
+      "totalAlcanzables": 182,
+      "totalAspiracionales": 8
+    }
+  }
+}
+```
+
+---
+
+## 📝 4. Registro de Puntajes y Análisis Individual
 
 ### A. Crear / Guardar Puntajes
 * **Método**: `POST`
@@ -162,13 +238,7 @@ Verifica que el servidor esté activo y respondiendo.
 
 ---
 
-## 🚀 4. Simulación Completa de Postulación (Los 3 Esquemas + IA)
-
-Calcula automáticamente la ponderación y genera los **3 esquemas clave** para el usuario:
-1. **Esquema 1**: Brecha de puntajes y puntos faltantes por sección frente al corte.
-2. **Esquema 2**: Carreras y universidades donde actualmente queda seleccionado (sobre más de 1200 opciones).
-3. **Esquema 3**: Simulación de escenario si sus puntajes de ensayo bajan.
-4. *(Opcional)*: Resumen y orientación con Inteligencia Artificial (`includeAI: true`).
+## 🚀 5. Simulación Completa de Postulación (Los 3 Esquemas + IA)
 
 * **Método**: `POST`
 * **Ruta**: `/simulaciones` o `/api/simulaciones`
@@ -190,95 +260,9 @@ Calcula automáticamente la ponderación y genera los **3 esquemas clave** para 
 }
 ```
 
-### Respuesta Exitosa (`200 OK`)
-```json
-{
-  "success": true,
-  "data": {
-    "userScores": {
-      "nem": 850,
-      "ranking": 870,
-      "lenguaje": 780,
-      "mat1": 890,
-      "mat2": 760,
-      "cienciasHistoria": 740
-    },
-    "targetCareer": {
-      "name": "Ingeniería Civil",
-      "university": "Pontificia Universidad Católica de Chile"
-    },
-    "esquema1_brechaPuntajes": {
-      "careerId": 1,
-      "careerName": "Ingeniería Civil",
-      "university": "Pontificia Universidad Católica de Chile",
-      "cutoffScore": 895.5,
-      "userWeightedScore": 841.5,
-      "meetsCutoff": false,
-      "pointsGap": 54,
-      "requirementsBySection": {
-        "mat1": {
-          "sectionName": "Matemática 1 (M1)",
-          "weightPercentage": 30,
-          "currentScore": 890,
-          "rawPointsNeeded": 180,
-          "targetScore": 1000,
-          "isAchievable": false
-        },
-        "lenguaje": {
-          "sectionName": "Comprensión Lectora",
-          "weightPercentage": 10,
-          "currentScore": 780,
-          "rawPointsNeeded": 540,
-          "targetScore": 1000,
-          "isAchievable": false
-        }
-      }
-    },
-    "esquema2_carrerasElegibles": [
-      {
-        "careerId": 3,
-        "careerName": "Ingeniería Civil",
-        "university": "Universidad Técnica Federico Santa María",
-        "location": "Valparaíso",
-        "cutoffScore": 840,
-        "userWeightedScore": 847.5,
-        "isEligible": true,
-        "marginScore": 7.5
-      }
-    ],
-    "esquema3_escenarioBaja": {
-      "dropSimulationFactor": "5% menos en pruebas",
-      "simulatedScores": {
-        "nem": 850,
-        "ranking": 870,
-        "lenguaje": 741,
-        "mat1": 846,
-        "mat2": 722,
-        "cienciasHistoria": 703
-      },
-      "results": [
-        {
-          "careerId": 3,
-          "careerName": "Ingeniería Civil",
-          "university": "Universidad Técnica Federico Santa María",
-          "cutoffScore": 840,
-          "originalWeightedScore": 847.5,
-          "droppedWeightedScore": 822.4,
-          "scoreLoss": 25.1,
-          "wasEligible": true,
-          "stillEligible": false,
-          "status": "EN_RIESGO"
-        }
-      ]
-    },
-    "aiSummary": "### 📊 Diagnóstico de Postulación: Ingeniería Civil...\n\n#### 💡 Recomendación de Enfoque PAES:..."
-  }
-}
-```
-
 ---
 
-## 🤖 5. Resumen Educativo con IA Independiente
+## 🤖 6. Resumen Educativo con IA Independiente
 
 * **Método**: `POST`
 * **Ruta**: `/simulaciones/ia-resumen` o `/api/simulaciones/ia-resumen`
@@ -289,15 +273,6 @@ Calcula automáticamente la ponderación y genera los **3 esquemas clave** para 
       "userScores": { "nem": 850, "mat1": 900, "lenguaje": 750 },
       "esquema1_brechaPuntajes": { "pointsGap": 20, "meetsCutoff": false },
       "targetCareer": { "name": "Medicina", "university": "Universidad de Chile" }
-    }
-  }
-  ```
-* **Respuesta Exitosa (`200 OK`)**:
-  ```json
-  {
-    "success": true,
-    "data": {
-      "summary": "### 📊 Diagnóstico de Postulación: Medicina...\n\nRecomendaciones para priorizar estudio..."
     }
   }
   ```

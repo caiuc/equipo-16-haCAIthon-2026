@@ -3,6 +3,7 @@ import simulationRoutes from './simulation.routes.js';
 import careerRoutes from './career.routes.js';
 import catalogRoutes from './catalog.routes.js';
 import applicationRoutes from './application.routes.js';
+import { getThreeTiersRecommendations } from '../controllers/simulation.controller.js';
 
 const apiRouter = Router();
 
@@ -14,6 +15,9 @@ apiRouter.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// Endpoint directo de recomendaciones de 3 niveles (/recomendaciones y /api/recomendaciones)
+apiRouter.post('/recomendaciones', getThreeTiersRecommendations);
 
 // Rutas de Catálogos (/universities, /career_types, /majors, /majors/:major_id/requirements)
 apiRouter.use(catalogRoutes);
