@@ -28,7 +28,27 @@ function App() {
   })
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
+  const [majors, setMajors] = useState([])
 
+
+
+  useEffect(() => {
+    // fetch majors for the carrera select
+    let mounted = true
+    async function loadMajors() {
+      try {
+        const res = await fetch('http://localhost:4000/api/majors')
+        if (!res.ok) throw new Error('Network error')
+        const data = await res.json()
+        if (mounted) setMajors(data)
+      } catch (err) {
+        console.warn('Could not load majors', err)
+        if (mounted) setMajors([])
+      }
+    }
+    loadMajors()
+    return () => { mounted = false }
+  }, [])
 
   useEffect(() => {
     const reveals = document.querySelectorAll('.reveal')
@@ -85,6 +105,8 @@ function App() {
   function handleSubmit(e) {
     e.preventDefault()
     const newErrors = {}
+    // also validate that a career is selected (optional)
+    if (!values.careerInterest) newErrors.careerInterest = 'Selecciona una carrera'
     for (const field of [...REQUIRED_FIELDS, ...OPTIONAL_FIELDS]) {
       const err = validateField(field, values[field])
       if (err) newErrors[field] = err
@@ -124,6 +146,27 @@ function App() {
           required={isRequired}
         />
         {errors[name] && <p className="form-error">{errors[name]}</p>}
+      </div>
+    )
+  }
+
+  function renderMajorSelect() {
+    return (
+      <div className="form-group select-full" key="careerInterest">
+        <label className="form-label" htmlFor="careerInterest">Carrera de interés</label>
+        <select
+          id="careerInterest"
+          name="careerInterest"
+          className={`form-select`}
+          value={values.careerInterest || ''}
+          onChange={handleChange}
+        >
+          <option value="">— Selecciona una carrera —</option>
+          {majors.map((m) => (
+            <option key={m.major_id || m.id} value={m.name}>{m.name} — {m.university?.name || (m.university && m.university.name) || ''}</option>
+          ))}
+        </select>
+        {errors.careerInterest && <p className="form-error">{errors.careerInterest}</p>}
       </div>
     )
   }
@@ -279,6 +322,7 @@ function App() {
             </p>
             <form onSubmit={handleSubmit} noValidate>
               <div className="form-grid">
+                {renderMajorSelect()}
                 {[...REQUIRED_FIELDS, ...OPTIONAL_FIELDS].map(renderField)}
               </div>
               {errors.group && <p className="form-error">{errors.group}</p>}
