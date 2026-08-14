@@ -23,6 +23,12 @@ function App() {
 
   return (
     <div className="page">
+      <div className="starfield">
+        <div id="stars"></div>
+        <div id="stars2"></div>
+        <div id="stars3"></div>
+        <div></div>
+      </div>
       <section id="intro" className="section hero">
         <div className="layer" />
         <div className="container">
